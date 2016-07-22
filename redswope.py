@@ -30,6 +30,7 @@ class MainApp:
 
     def __init__(self):
         self.args = self.get_args()
+        self.night = self.set_night()
 
     def get_args(self):
         """Handles the argparse library and returns the arguments
@@ -128,6 +129,19 @@ class MainApp:
                 os.makedirs(args.destiny)
 
         return args
+
+    def set_night(self):
+        """
+
+        Returns:
+
+        """
+        return 0
+
+class Night:
+
+    def __init__(self):
+        self.i = 'i'
 
 
 if __name__ == '__main__':
