@@ -7,6 +7,7 @@ This pipeline performs all the necessary reduction processes for single nights
 
 import os
 from astropy.io import fits
+from glob import glob
 import ccdproc as ccd
 import pandas as pd
 import argparse
@@ -14,7 +15,7 @@ import logging as log
 import warnings
 
 warnings.filterwarnings('ignore')
-log.basicConfig(level=log.INFO)
+log.basicConfig(level=log.DEBUG)
 
 __author__ = 'Simon Torres'
 __date__ = '2016-06-28'
@@ -27,6 +28,10 @@ class MainApp:
     """docstrings
 
     """
+    quadrants = [1, 2, 3, 4]
+    linear_c2 = [0.033, 0.012, 0.010, 0.014666]
+    linear_c3 = [0.0057, 0.0017, 0.0014, 0.0027]
+    linear_alpha = [1.1150, 1.0128, 1.00000, 1.0696]
 
     def __init__(self):
         self.args = self.get_args()
@@ -34,8 +39,6 @@ class MainApp:
 
     def get_args(self):
         """Handles the argparse library and returns the arguments
-
-
 
         Returns:
 
@@ -101,7 +104,7 @@ class MainApp:
                             default=5,
                             type=int,
                             metavar='<Chip Number>',
-                            dest='chipNumber',
+                            dest='chip_number',
                             help='Process single chip instead of all. Default all')
 
         parser.add_argument('--mosaic',
@@ -109,6 +112,7 @@ class MainApp:
                             default=False,
                             dest='mosaic',
                             help='Build mosaic')
+
         parser.add_argument('--clean',
                             action='store_true',
                             default=False,
@@ -122,10 +126,10 @@ class MainApp:
         if not os.path.isdir(args.destiny):
             log.warning("Destination folder doesn't exist")
             if os.getcwd() not in args.destiny:
-                log.warning("Please Create the destination folder: %s"%args.destiny)
+                log.warning("Please Create the destination folder: %s" % args.destiny)
                 parser.exit("Bye!")
             else:
-                log.info("Creating Destination folder: %s"%args.destiny)
+                log.info("Creating Destination folder: %s" % args.destiny)
                 os.makedirs(args.destiny)
 
         return args
@@ -136,12 +140,30 @@ class MainApp:
         Returns:
 
         """
-        return 0
+        night = Night(self.args)
+
+        return night
+
 
 class Night:
+    keys = ['ut-date', 'exptype', 'object', 'exptime', 'ra', 'dec']
 
-    def __init__(self):
-        self.i = 'i'
+    def __init__(self, args):
+        self.args = args
+        # self.date = date
+        self.ic = self.image_collection()
+        # self.source = source
+        # self.de
+
+    def image_collection(self):
+        collection = ccd.ImageFileCollection(self.args.source, self.keys)
+        image_data_frame = collection.summary.to_pandas()
+        print image_data_frame
+        file_list = sorted(glob(self.args.source + '/*c1.fits'))
+        print file_list
+        # for ifile in file_list:
+            # image_data_frame.
+        return image_data_frame
 
 
 if __name__ == '__main__':
