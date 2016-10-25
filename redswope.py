@@ -28,14 +28,21 @@ class MainApp:
     """docstrings
 
     """
-    quadrants = [1, 2, 3, 4]
-    linear_c2 = [0.033, 0.012, 0.010, 0.014666]
-    linear_c3 = [0.0057, 0.0017, 0.0014, 0.0027]
-    linear_alpha = [1.1150, 1.0128, 1.00000, 1.0696]
+
 
     def __init__(self):
+        self.args = None
+        self.night = None
+        self.quadrants = [1, 2, 3, 4]
+        self.linear_c2 = [0.033, 0.012, 0.010, 0.014666]
+        self.linear_c3 = [0.0057, 0.0017, 0.0014, 0.0027]
+        self.linear_alpha = [1.1150, 1.0128, 1.00000, 1.0696]
+
+    def __call__(self, *args, **kwargs):
         self.args = self.get_args()
         self.night = self.set_night()
+        self.night()
+        pass
 
     def get_args(self):
         """Handles the argparse library and returns the arguments
@@ -103,6 +110,7 @@ class MainApp:
                             action='store',
                             default=5,
                             type=int,
+                            choices=[1, 2, 3, 4],
                             metavar='<Chip Number>',
                             dest='chip_number',
                             help='Process single chip instead of all. Default all')
@@ -146,25 +154,38 @@ class MainApp:
 
 
 class Night:
-    keys = ['ut-date', 'exptype', 'object', 'exptime', 'ra', 'dec']
+    keys = ['ut-date', 'exptype', 'object', 'exptime', 'ra', 'dec', 'opamp']
 
     def __init__(self, args):
         self.args = args
         # self.date = date
-        self.ic = self.image_collection()
+        self.ic = None
+        self.bias = []
+        self.dark = []
+        self.flats = []
+        self.objects = []
         # self.source = source
         # self.de
+
+    def __call__(self, *args, **kwargs):
+        self.ic = self.image_collection()
+        self.classify_data()
+
 
     def image_collection(self):
         collection = ccd.ImageFileCollection(self.args.source, self.keys)
         image_data_frame = collection.summary.to_pandas()
-        print image_data_frame
-        file_list = sorted(glob(self.args.source + '/*c1.fits'))
-        print file_list
+        # print image_data_frame
+        # file_list = sorted(glob(self.args.source + '/*c1.fits'))
+        # print file_list
         # for ifile in file_list:
             # image_data_frame.
         return image_data_frame
 
+    def classify_data(self):
+        print self.ic.file[self.ic.exptype == 'Bias']
+
 
 if __name__ == '__main__':
     App = MainApp()
+    App()
